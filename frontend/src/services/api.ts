@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://codelens-backend-qq69.onrender.com/",
+  baseURL: "https://codelens-backend-qq69.onrender.com/api",
 });
 
 api.interceptors.request.use((config) => {
