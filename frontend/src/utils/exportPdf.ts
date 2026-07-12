@@ -23,59 +23,98 @@ export const exportPDF = ({
 }: ReportData) => {
   const doc = new jsPDF();
 
+  const pageWidth = 170;
+  const pageHeight = 280;
+  let y = 20;
+
+  const checkPage = (extra = 10) => {
+    if (y + extra > pageHeight) {
+      doc.addPage();
+      y = 20;
+    }
+  };
+
   doc.setFontSize(20);
-    doc.text("CodeLens Report", 20, 20);
+  doc.text("CodeLens Report", 20, y);
+  y += 12;
 
-    doc.setFontSize(12);
+  doc.setFontSize(12);
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 20, y);
+  y += 10;
+  doc.text(`Language: ${language}`, 20, y);
+  y += 10;
+  doc.text(`Similarity: ${similarity}%`, 20, y);
+  y += 8;
+  doc.text(`Added Lines: ${added}`, 20, y);
+  y += 8;
+  doc.text(`Removed Lines: ${removed}`, 20, y);
+  y += 8;
+  doc.text(`Modified Lines: ${modified}`, 20, y);
+  y += 15;
 
-    doc.text(`Generated: ${new Date().toLocaleString()}`,20,32);
+  doc.setFontSize(16);
+  doc.text("AI Analysis", 20, y);
+  y += 10;
 
-    doc.text(`Language : ${language}`,20,42);
-
-    doc.text(`Similarity : ${similarity}%`,20,55);
-    doc.text(`Added Lines : ${added}`,20,65);
-    doc.text(`Removed Lines : ${removed}`,20,75);
-    doc.text(`Modified Lines : ${modified}`,20,85);
-
-    doc.setFontSize(16);
-    doc.text("AI Analysis",20,100);
-
-    const cleanAnalysis = analysis
+  const cleanAnalysis = analysis
     .replace(/\*\*/g, "")
     .replace(/`/g, "");
 
-    const lines = doc.splitTextToSize(cleanAnalysis, 170);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
 
-    doc.setFontSize(11);
-    doc.text(lines, 20, 110);
-  let y = 100 + lines.length * 7 + 10;
+  const analysisLines = doc.splitTextToSize(cleanAnalysis, pageWidth);
 
-    if (y > 260) {
-    doc.addPage();
-    y = 20;
-    }
+  for (const line of analysisLines) {
+    checkPage(7);
+    doc.text(line, 20, y);
+    y += 7;
+  }
 
-    doc.setFontSize(16);
-    doc.text("Original Code", 20, y);
+  y += 8;
+  checkPage(20);
 
-    const originalLines = doc.splitTextToSize(originalCode, 170);
-    doc.setFontSize(11);
-    doc.text(originalLines, 20, y + 10);
+  doc.setFontSize(16);
+  doc.text("Original Code", 20, y);
+  y += 10;
 
-    y += originalLines.length * 5 + 20;
+  doc.setFont("courier", "normal");
+  doc.setFontSize(10);
 
-    const modifiedLines = doc.splitTextToSize(modifiedCode,170);
+  const originalWrapped: string[] = [];
 
-    if(y + modifiedLines.length*5 > 270){
-        doc.addPage();
-        y=20;
-    }
+  originalCode.split("\n").forEach((line) => {
+    originalWrapped.push(...doc.splitTextToSize(line, pageWidth));
+  });
 
-    doc.setFontSize(16);
-    doc.text("Modified Code",20,y);
+  for (const line of originalWrapped) {
+    checkPage(5);
+    doc.text(line, 20, y);
+    y += 5;
+  }
 
-    doc.setFontSize(11);
-    doc.text(modifiedLines,20,y+10);
+  y += 10;
+  checkPage(20);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("Modified Code", 20, y);
+  y += 10;
+
+  doc.setFont("courier", "normal");
+  doc.setFontSize(10);
+
+  const modifiedWrapped: string[] = [];
+
+  modifiedCode.split("\n").forEach((line) => {
+    modifiedWrapped.push(...doc.splitTextToSize(line, pageWidth));
+  });
+
+  for (const line of modifiedWrapped) {
+    checkPage(5);
+    doc.text(line, 20, y);
+    y += 5;
+  }
 
   doc.save("CodeLens_Report.pdf");
 };
