@@ -14,9 +14,7 @@ const Navbar = () => {
 
   return (
     <nav className="flex items-center justify-between border-b border-zinc-800 px-8 py-5">
-      <h1 className="text-2xl font-bold text-white">
-        CodeLens
-      </h1>
+      <h1 className="text-2xl font-bold text-white">CodeLens</h1>
 
       <div className="flex items-center gap-4">
         {user && (

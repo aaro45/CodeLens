@@ -18,7 +18,7 @@ app.use(
       "https://codelens-frontend-snowy.vercel.app",
     ],
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 app.use("/api/gemini", geminiRoutes);
@@ -27,14 +27,14 @@ app.use("/api/auth", authRoutes);
 app.use("/api/github", githubRoutes);
 
 app.get("/", (req, res) => {
-    res.json({
-        success: true,
-        message: "CodeLens Backend Running 🚀"
-    });
+  res.json({
+    success: true,
+    message: "CodeLens Backend Running 🚀",
+  });
 });
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

@@ -1,9 +1,14 @@
 import api from "./api";
 
+type PullRequestFile = {
+  filename: string;
+  patch?: string;
+};
+
 export const analyzeCode = async (
   original: string,
   modified: string,
-  language: string
+  language: string,
 ) => {
   try {
     const response = await api.post("/gemini/compare", {
@@ -18,14 +23,11 @@ export const analyzeCode = async (
     return "Failed to analyze code.";
   }
 };
-export const reviewPullRequest = async (files: any[]) => {
-  console.log("Calling /gemini/review-pr");
 
+export const reviewPullRequest = async (files: PullRequestFile[]) => {
   const response = await api.post("/gemini/review-pr", {
     files,
   });
-
-  console.log(response);
 
   return response.data.response;
 };

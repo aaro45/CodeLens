@@ -3,14 +3,14 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Comparison = require("../models/Comparison");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const compareCode = async (req, res) => {
-    try {
-        const { code1, code2, language } = req.body;
+  try {
+    const { code1, code2, language } = req.body;
 
-        const model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash",
-        });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+    });
 
-        const prompt = `
+    const prompt = `
 You are a Senior Software Engineer conducting a professional code review.
 
 Compare these two ${language} programs.
@@ -65,44 +65,43 @@ Final Verdict:
 Keep the response concise (under 300 words).
 `;
 
-        const result = await model.generateContent(prompt);
+    const result = await model.generateContent(prompt);
 
-        const response = result.response.text();
-        await Comparison.create({
-            user: req.user.id,
-            language,
-            originalCode: code1,
-            modifiedCode: code2,
-            aiResponse: response,
-        });
+    const response = result.response.text();
+    await Comparison.create({
+      user: req.user.id,
+      language,
+      originalCode: code1,
+      modifiedCode: code2,
+      aiResponse: response,
+    });
 
-        res.json({
-            success: true,
-            response,
-        });
+    res.json({
+      success: true,
+      response,
+    });
+  } catch (err) {
+    console.error(err);
 
-    } catch (err) {
-        console.error(err);
-
-        res.status(500).json({
-            success: false,
-            message: "Gemini Error",
-        });
-    }
+    res.status(500).json({
+      success: false,
+      message: "Gemini Error",
+    });
+  }
 };
 const reviewPullRequest = async (req, res) => {
-    console.log("Review PR API Hit");
-    try {
-        const { files } = req.body;
-        console.log(files.length);
-        const model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash",
-        });
+  console.log("Review PR API Hit");
+  try {
+    const { files } = req.body;
+    console.log(files.length);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+    });
 
-        let prContent = "";
+    let prContent = "";
 
-        files.forEach((file, index) => {
-            prContent += `
+    files.forEach((file, index) => {
+      prContent += `
 File ${index + 1}: ${file.filename}
 
 Original:
@@ -114,9 +113,9 @@ ${file.modifiedContent}
 ----------------------------------------
 
 `;
-        });
+    });
 
-        const prompt = `
+    const prompt = `
 You are a Senior Software Engineer reviewing a GitHub Pull Request.
 
 Review all changed files.
@@ -146,23 +145,22 @@ Final Recommendation:
 Keep the response under 500 words.
 `;
 
-        const result = await model.generateContent(prompt);
+    const result = await model.generateContent(prompt);
 
-        res.json({
-            success: true,
-            response: result.response.text(),
-        });
+    res.json({
+      success: true,
+      response: result.response.text(),
+    });
+  } catch (err) {
+    console.error(err);
 
-    } catch (err) {
-        console.error(err);
-
-        res.status(500).json({
-            success: false,
-            message: "PR Review Failed",
-        });
-    }
+    res.status(500).json({
+      success: false,
+      message: "PR Review Failed",
+    });
+  }
 };
 module.exports = {
-    compareCode,
-    reviewPullRequest,
+  compareCode,
+  reviewPullRequest,
 };

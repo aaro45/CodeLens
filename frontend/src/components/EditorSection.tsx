@@ -13,8 +13,12 @@ interface Props {
 }
 
 const EditorSection = ({ selectedComparison }: Props) => {
-  const [originalCode, setOriginalCode] = useState("// Write your code here...");
-  const [modifiedCode, setModifiedCode] = useState("// Write your code here...");
+  const [originalCode, setOriginalCode] = useState(
+    "// Write your code here...",
+  );
+  const [modifiedCode, setModifiedCode] = useState(
+    "// Write your code here...",
+  );
   const [result, setResult] = useState<{
     similarity: number;
     added: number;
@@ -26,13 +30,20 @@ const EditorSection = ({ selectedComparison }: Props) => {
   const [language, setLanguage] = useState("cpp");
   const [prUrl, setPrUrl] = useState("");
 
-  const [githubFiles, setGithubFiles] = useState<any[]>([]);
-  const openGithubFile = (file: any) => {
+  type GitHubFile = {
+    filename: string;
+    originalContent: string;
+    modifiedContent: string;
+  };
+
+  const [githubFiles, setGithubFiles] = useState<GitHubFile[]>([]);
+  const openGithubFile = (file: GitHubFile) => {
     setOriginalCode(file.originalContent);
     setModifiedCode(file.modifiedContent);
   };
 
   const [loadingPR, setLoadingPR] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (!selectedComparison) return;
 
@@ -43,7 +54,7 @@ const EditorSection = ({ selectedComparison }: Props) => {
 
     const changes = diffLines(
       selectedComparison.originalCode,
-      selectedComparison.modifiedCode
+      selectedComparison.modifiedCode,
     );
 
     let added = 0;
@@ -59,7 +70,7 @@ const EditorSection = ({ selectedComparison }: Props) => {
         if (i + 1 < changes.length && changes[i + 1].added) {
           modified += Math.min(
             changes[i].count || 0,
-            changes[i + 1].count || 0
+            changes[i + 1].count || 0,
           );
         }
       }
@@ -67,14 +78,12 @@ const EditorSection = ({ selectedComparison }: Props) => {
 
     const totalLines = Math.max(
       selectedComparison.originalCode.split("\n").length,
-      selectedComparison.modifiedCode.split("\n").length
+      selectedComparison.modifiedCode.split("\n").length,
     );
 
     const similarity = Math.max(
       0,
-      Math.round(
-        ((totalLines - added - removed) / totalLines) * 100
-      )
+      Math.round(((totalLines - added - removed) / totalLines) * 100),
     );
 
     setResult({
@@ -84,45 +93,33 @@ const EditorSection = ({ selectedComparison }: Props) => {
       modified,
     });
   }, [selectedComparison]);
-    const handleFetchPR = async () => {
-  if (!prUrl.trim()) {
-    alert("Enter GitHub PR URL");
-    return;
-  }
-
-  try {
-    setLoadingPR(true);
-
-    const data = await fetchPullRequest(prUrl);
-
-    console.log("========== BACKEND RESPONSE ==========");
-    console.log(data);
-
-    setGithubFiles(data.files);
-
-    console.log("========== FILES ==========");
-    console.log(data.files);
-
-    if (data.files.length > 0) {
-      console.log("========== FIRST FILE ==========");
-      console.log(data.files[0]);
-
-      console.log("Original Length:", data.files[0].originalContent?.length);
-      console.log("Modified Length:", data.files[0].modifiedContent?.length);
-
-      setOriginalCode(data.files[0].originalContent);
-      setModifiedCode(data.files[0].modifiedContent);
-    } else {
-      console.log("No files returned!");
+  const handleFetchPR = async () => {
+    if (!prUrl.trim()) {
+      alert("Enter GitHub PR URL");
+      return;
     }
-  } catch (err) {
-    console.error("FETCH PR ERROR");
-    console.error(err);
-    alert("Failed to fetch Pull Request");
-  } finally {
-    setLoadingPR(false);
-  }
-};
+
+    try {
+      setLoadingPR(true);
+
+      const data = await fetchPullRequest(prUrl);
+
+      setGithubFiles(data.files);
+
+      if (data.files.length > 0) {
+        setOriginalCode(data.files[0].originalContent);
+        setModifiedCode(data.files[0].modifiedContent);
+      } else {
+        console.log("No files returned!");
+      }
+    } catch (err) {
+      console.error("FETCH PR ERROR");
+      console.error(err);
+      alert("Failed to fetch Pull Request");
+    } finally {
+      setLoadingPR(false);
+    }
+  };
   const handleCompare = async () => {
     const changes = diffLines(originalCode, modifiedCode);
 
@@ -139,7 +136,7 @@ const EditorSection = ({ selectedComparison }: Props) => {
         if (i + 1 < changes.length && changes[i + 1].added) {
           modified += Math.min(
             changes[i].count || 0,
-            changes[i + 1].count || 0
+            changes[i + 1].count || 0,
           );
         }
       }
@@ -147,14 +144,12 @@ const EditorSection = ({ selectedComparison }: Props) => {
 
     const totalLines = Math.max(
       originalCode.split("\n").length,
-      modifiedCode.split("\n").length
+      modifiedCode.split("\n").length,
     );
 
     const similarity = Math.max(
       0,
-      Math.round(
-        ((totalLines - added - removed) / totalLines) * 100
-      )
+      Math.round(((totalLines - added - removed) / totalLines) * 100),
     );
 
     setResult({
@@ -166,7 +161,11 @@ const EditorSection = ({ selectedComparison }: Props) => {
     setLoading(true);
 
     try {
-      const aiResponse = await analyzeCode(originalCode, modifiedCode, language);
+      const aiResponse = await analyzeCode(
+        originalCode,
+        modifiedCode,
+        language,
+      );
       setAnalysis(aiResponse);
     } catch (error) {
       console.error(error);
@@ -176,46 +175,34 @@ const EditorSection = ({ selectedComparison }: Props) => {
     }
   };
   const handleReviewPR = async () => {
-  console.log("Review PR button clicked");
+    if (githubFiles.length === 0) {
+      alert("Fetch a Pull Request first.");
+      return;
+    }
 
-  console.log("GitHub Files:", githubFiles);
+    setLoading(true);
 
-  if (githubFiles.length === 0) {
-    alert("Fetch a Pull Request first.");
-    return;
-  }
+    try {
+      const response = await reviewPullRequest(githubFiles);
 
-  setLoading(true);
+      setAnalysis(response);
+    } catch (err) {
+      console.error("Review PR Error:");
+      console.error(err);
 
-  try {
-    console.log("Sending request to backend...");
-
-    const response = await reviewPullRequest(githubFiles);
-
-    console.log("Backend Response:");
-    console.log(response);
-
-    setAnalysis(response);
-  } catch (err) {
-    console.error("Review PR Error:");
-    console.error(err);
-
-    setAnalysis("Failed to review PR.");
-  } finally {
-    setLoading(false);
-  }
-};
+      setAnalysis("Failed to review PR.");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
-    
     <section className="mx-auto mt-10 max-w-7xl px-4 md:px-8">
       <div className="mb-8 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-
         <h2 className="mb-4 text-xl font-bold text-white">
           GitHub Pull Request
         </h2>
 
         <div className="flex gap-3">
-
           <input
             value={prUrl}
             onChange={(e) => setPrUrl(e.target.value)}
@@ -230,9 +217,7 @@ const EditorSection = ({ selectedComparison }: Props) => {
           >
             {loadingPR ? "Fetching..." : "Fetch PR"}
           </button>
-
         </div>
-
       </div>
       <div className="mb-6 flex justify-end">
         <select
@@ -261,42 +246,57 @@ const EditorSection = ({ selectedComparison }: Props) => {
           language={language}
         />
       </div>
-      {
-        githubFiles.length > 0 && (
+      {githubFiles.length > 0 && (
+        <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+          <h2 className="mb-4 text-xl font-bold text-white">Changed Files</h2>
 
-          <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-
-            <h2 className="mb-4 text-xl font-bold text-white">
-
-              Changed Files
-
-            </h2>
-
-            <div className="space-y-2">
-
-              {githubFiles.map((file) => (
-                <button
-                  key={file.sha}
-                  onClick={() => openGithubFile(file)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3 text-left text-white transition hover:border-violet-500 hover:bg-zinc-800"
-                >
-                  📄 {file.filename}
-                </button>
-              ))}
-
-            </div>
-
+          <div className="space-y-2">
+            {githubFiles.map((file) => (
+              <button
+                key={file.filename}
+                onClick={() => openGithubFile(file)}
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3 text-left text-white transition hover:border-violet-500 hover:bg-zinc-800"
+              >
+                📄 {file.filename}
+              </button>
+            ))}
           </div>
-
-        )
-      }
+        </div>
+      )}
 
       <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
         <button
           onClick={handleCompare}
-          className="w-full sm:w-auto rounded-xl bg-violet-600 px-8 py-4 text-lg font-semibold text-white transition hover:bg-violet-700"
+          disabled={loading}
+          className="group w-full sm:w-auto rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:from-violet-500 hover:to-indigo-500 hover:shadow-violet-500/30 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Compare Code
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg
+                className="h-5 w-5 animate-spin"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
+              </svg>
+              Comparing...
+            </span>
+          ) : (
+            "🚀 Compare Code"
+          )}
         </button>
         <button
           onClick={handleReviewPR}
@@ -326,13 +326,13 @@ const EditorSection = ({ selectedComparison }: Props) => {
       </div>
       {result && (
         <ComparisonResult
-        similarity={result.similarity}
-        added={result.added}
-        removed={result.removed}
-        modified={result.modified}
-        analysis={analysis}
-        loading={loading}
-      />
+          similarity={result.similarity}
+          added={result.added}
+          removed={result.removed}
+          modified={result.modified}
+          analysis={analysis}
+          loading={loading}
+        />
       )}
       {result && (
         <DiffViewer

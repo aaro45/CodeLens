@@ -6,8 +6,8 @@ console.log("Gemini routes loaded");
 const auth = require("../middleware/auth");
 
 const {
-    compareCode,
-    reviewPullRequest,
+  compareCode,
+  reviewPullRequest,
 } = require("../controllers/geminiController");
 
 router.post("/compare", auth, compareCode);

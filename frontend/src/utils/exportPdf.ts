@@ -56,9 +56,7 @@ export const exportPDF = ({
   doc.text("AI Analysis", 20, y);
   y += 10;
 
-  const cleanAnalysis = analysis
-    .replace(/\*\*/g, "")
-    .replace(/`/g, "");
+  const cleanAnalysis = analysis.replace(/\*\*/g, "").replace(/`/g, "");
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);

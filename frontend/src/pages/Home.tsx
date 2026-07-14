@@ -24,15 +24,11 @@ const Home = () => {
 
       <div className="max-w-7xl mx-auto grid grid-cols-4 gap-6 px-6">
         <div className="col-span-1">
-          <HistoryPanel
-            onSelect={setSelectedComparison}
-          />
+          <HistoryPanel onSelect={setSelectedComparison} />
         </div>
 
         <div className="col-span-3">
-          <EditorSection
-            selectedComparison={selectedComparison}
-          />
+          <EditorSection selectedComparison={selectedComparison} />
         </div>
       </div>
     </main>

@@ -7,17 +7,10 @@ interface CodeEditorProps {
   language: string;
 }
 
-const CodeEditor = ({
-  title,
-  code,
-  setCode,
-  language,
-}: CodeEditorProps) => {
+const CodeEditor = ({ title, code, setCode, language }: CodeEditorProps) => {
   return (
     <div className="w-full">
-      <h2 className="mb-2 text-lg font-semibold text-white">
-        {title}
-      </h2>
+      <h2 className="mb-2 text-lg font-semibold text-white">{title}</h2>
 
       <Editor
         height="500px"

@@ -1,21 +1,15 @@
 import { DiffEditor } from "@monaco-editor/react";
 
-interface DiffViewerProps{
-    original:string;
-    modified:string;
-    language:string;
+interface DiffViewerProps {
+  original: string;
+  modified: string;
+  language: string;
 }
 
-const DiffViewer = ({
-  original,
-  modified,
-  language,
-}: DiffViewerProps) => {
+const DiffViewer = ({ original, modified, language }: DiffViewerProps) => {
   return (
     <div className="mt-10">
-      <h2 className="mb-4 text-xl font-bold text-white">
-        Code Differences
-      </h2>
+      <h2 className="mb-4 text-xl font-bold text-white">Code Differences</h2>
 
       <DiffEditor
         height="500px"

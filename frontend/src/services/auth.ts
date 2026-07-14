@@ -12,7 +12,7 @@ export const loginUser = async (email: string, password: string) => {
 export const signupUser = async (
   name: string,
   email: string,
-  password: string
+  password: string,
 ) => {
   const res = await api.post("/auth/signup", {
     name,

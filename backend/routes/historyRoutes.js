@@ -1,11 +1,16 @@
-const express=require("express");
+const express = require("express");
 
-const router=express.Router();
+const router = express.Router();
 
-const auth=require("../middleware/auth");
+const auth = require("../middleware/auth");
 
-const {getHistory}=require("../controllers/historyController");
+const {
+  getHistory,
+  deleteHistory,
+} = require("../controllers/historyController");
 
-router.get("/",auth,getHistory);
+router.get("/", auth, getHistory);
 
-module.exports=router;
+router.delete("/:id", auth, deleteHistory);
+
+module.exports = router;
