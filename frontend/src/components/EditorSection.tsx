@@ -93,6 +93,11 @@ const EditorSection = ({ selectedComparison }: Props) => {
 
       setGithubFiles(data.files);
 
+if (data.files.length > 0) {
+  setOriginalCode(data.files[0].originalContent);
+  setModifiedCode(data.files[0].modifiedContent);
+}
+
     } catch (err) {
       console.error(err);
       alert("Failed to fetch Pull Request");
