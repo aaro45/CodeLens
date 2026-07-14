@@ -18,3 +18,14 @@ export const analyzeCode = async (
     return "Failed to analyze code.";
   }
 };
+export const reviewPullRequest = async (files: any[]) => {
+  console.log("Calling /gemini/review-pr");
+
+  const response = await api.post("/gemini/review-pr", {
+    files,
+  });
+
+  console.log(response);
+
+  return response.data.response;
+};

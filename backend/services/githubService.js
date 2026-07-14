@@ -57,7 +57,8 @@ const getPullRequest = async (owner, repo, pullNumber) => {
     };
   })
 );
-
+console.log("========== FINAL FILES ==========");
+console.log(files);
   return {
     title: pr.data.title,
     author: pr.data.user.login,

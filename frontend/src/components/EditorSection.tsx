@@ -3,7 +3,7 @@ import { diffLines } from "diff";
 import ComparisonResult from "./ComparisonResult";
 import CodeEditor from "./CodeEditor";
 import DiffViewer from "./DiffViewer";
-import { analyzeCode } from "../services/gemini";
+import { analyzeCode, reviewPullRequest } from "../services/gemini";
 import { exportPDF } from "../utils/exportPdf";
 import type { Comparison } from "../pages/Home";
 import { fetchPullRequest } from "../services/github";
@@ -27,6 +27,10 @@ const EditorSection = ({ selectedComparison }: Props) => {
   const [prUrl, setPrUrl] = useState("");
 
   const [githubFiles, setGithubFiles] = useState<any[]>([]);
+  const openGithubFile = (file: any) => {
+    setOriginalCode(file.originalContent);
+    setModifiedCode(file.modifiedContent);
+  };
 
   const [loadingPR, setLoadingPR] = useState(false);
   useEffect(() => {
@@ -81,30 +85,44 @@ const EditorSection = ({ selectedComparison }: Props) => {
     });
   }, [selectedComparison]);
     const handleFetchPR = async () => {
-    if (!prUrl.trim()) {
-      alert("Enter GitHub PR URL");
-      return;
+  if (!prUrl.trim()) {
+    alert("Enter GitHub PR URL");
+    return;
+  }
+
+  try {
+    setLoadingPR(true);
+
+    const data = await fetchPullRequest(prUrl);
+
+    console.log("========== BACKEND RESPONSE ==========");
+    console.log(data);
+
+    setGithubFiles(data.files);
+
+    console.log("========== FILES ==========");
+    console.log(data.files);
+
+    if (data.files.length > 0) {
+      console.log("========== FIRST FILE ==========");
+      console.log(data.files[0]);
+
+      console.log("Original Length:", data.files[0].originalContent?.length);
+      console.log("Modified Length:", data.files[0].modifiedContent?.length);
+
+      setOriginalCode(data.files[0].originalContent);
+      setModifiedCode(data.files[0].modifiedContent);
+    } else {
+      console.log("No files returned!");
     }
-
-    try {
-      setLoadingPR(true);
-
-      const data = await fetchPullRequest(prUrl);
-
-      setGithubFiles(data.files);
-
-if (data.files.length > 0) {
-  setOriginalCode(data.files[0].originalContent);
-  setModifiedCode(data.files[0].modifiedContent);
-}
-
-    } catch (err) {
-      console.error(err);
-      alert("Failed to fetch Pull Request");
-    } finally {
-      setLoadingPR(false);
-    }
-  };
+  } catch (err) {
+    console.error("FETCH PR ERROR");
+    console.error(err);
+    alert("Failed to fetch Pull Request");
+  } finally {
+    setLoadingPR(false);
+  }
+};
   const handleCompare = async () => {
     const changes = diffLines(originalCode, modifiedCode);
 
@@ -157,6 +175,36 @@ if (data.files.length > 0) {
       setLoading(false);
     }
   };
+  const handleReviewPR = async () => {
+  console.log("Review PR button clicked");
+
+  console.log("GitHub Files:", githubFiles);
+
+  if (githubFiles.length === 0) {
+    alert("Fetch a Pull Request first.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    console.log("Sending request to backend...");
+
+    const response = await reviewPullRequest(githubFiles);
+
+    console.log("Backend Response:");
+    console.log(response);
+
+    setAnalysis(response);
+  } catch (err) {
+    console.error("Review PR Error:");
+    console.error(err);
+
+    setAnalysis("Failed to review PR.");
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     
     <section className="mx-auto mt-10 max-w-7xl px-4 md:px-8">
@@ -227,14 +275,13 @@ if (data.files.length > 0) {
             <div className="space-y-2">
 
               {githubFiles.map((file) => (
-
-                <div
+                <button
                   key={file.sha}
-                  className="rounded-lg border border-zinc-700 bg-zinc-950 p-3 text-white"
+                  onClick={() => openGithubFile(file)}
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3 text-left text-white transition hover:border-violet-500 hover:bg-zinc-800"
                 >
-                  {file.filename}
-                </div>
-
+                  📄 {file.filename}
+                </button>
               ))}
 
             </div>
@@ -250,6 +297,13 @@ if (data.files.length > 0) {
           className="w-full sm:w-auto rounded-xl bg-violet-600 px-8 py-4 text-lg font-semibold text-white transition hover:bg-violet-700"
         >
           Compare Code
+        </button>
+        <button
+          onClick={handleReviewPR}
+          disabled={loading || githubFiles.length === 0}
+          className="rounded-xl bg-blue-600 px-8 py-4 text-lg font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+        >
+          {loading ? "Reviewing..." : "Review Entire PR"}
         </button>
         <button
           onClick={() =>

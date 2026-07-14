@@ -23,12 +23,19 @@ const fetchPullRequest = async (req, res) => {
         const [, owner, repo, pullNumber] = match;
 
         const data = await getPullRequest(owner, repo, pullNumber);
+        console.log("========== FILES FROM SERVICE ==========");
+        console.log(data);
+        console.log("========== SENDING TO FRONTEND ==========");
+        console.log({
+            totalFiles: data.length,
+            firstFile: data[0],
+        });
 
         res.json({
             success: true,
             data
         });
-    } catch (err) {
+    } catch (err) { 
     console.log("GitHub Error:");
     console.log(err.response?.status);
     console.log(err.response?.data);
