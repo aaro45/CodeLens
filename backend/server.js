@@ -15,7 +15,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://codelens-frontend-snowy.vercel.app",
+      "https://codelens-ai-review.vercel.app",
     ],
     credentials: true,
   }),
