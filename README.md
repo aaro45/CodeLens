@@ -152,21 +152,7 @@ Express Backend
    └────────► GitHub API
 ```
 
----
 
-# 📸 Screenshots
-
-Add screenshots here
-
-- Login
-- Dashboard
-- Code Comparison
-- Diff Viewer
-- AI Review
-- GitHub PR Review
-- History
-
----
 
 # 🔮 Future Enhancements
 
