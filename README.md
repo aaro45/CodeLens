@@ -189,3 +189,8 @@ IIT (BHU), Varanasi
 ---
 
 ## ⭐ If you found this project useful, consider giving it a star!
+if (code1.empty() || code2.empty()) {
+    return res.status(400).json({
+        message: "Both code inputs are required"
+    });
+}
